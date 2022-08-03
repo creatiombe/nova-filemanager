@@ -1,7 +1,9 @@
 <?php
 
-namespace Grayloon\Filemanager;
+namespace Infinety\Filemanager;
 
+use Illuminate\Http\Request;
+use Laravel\Nova\Menu\MenuSection;
 use Laravel\Nova\Nova;
 use Laravel\Nova\Tool as BaseTool;
 
@@ -17,13 +19,11 @@ class FilemanagerTool extends BaseTool
         Nova::script('nova-filemanager', __DIR__.'/../dist/js/tool.js');
     }
 
-    /**
-     * Build the view that renders the navigation links for the tool.
-     *
-     * @return \Illuminate\View\View
-     */
-    public function renderNavigation()
+    public function menu(Request $request)
     {
-        return view('nova-filemanager::navigation');
+        return MenuSection::make('Filemanager')
+            ->path('/nova-filemanager')
+            ->icon('folder');
     }
 }
+
