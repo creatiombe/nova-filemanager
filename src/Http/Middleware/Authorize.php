@@ -9,10 +9,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Authorize
 {
-    /**
-     * @param Request $request
-     * @param Closure $next
-     */
+	/**
+	 * @param Request $request
+	 * @param Closure $next
+	 * @return Response
+	 */
     public function handle(Request $request, Closure $next): Response
     {
         return app(FilemanagerTool::class)->authorize($request)

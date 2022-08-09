@@ -25,47 +25,47 @@ class FilemanagerField extends Field implements Cover
      *
      * @var array
      */
-    public $uploadRules = [];
+    public array $uploadRules = [];
 
     /**
      * @var bool
      */
-    protected $createFolderButton;
+    protected  bool $createFolderButton;
 
     /**
      * @var bool
      */
-    protected $uploadButton;
+    protected  bool $uploadButton;
 
     /**
      * @var bool
      */
-    protected $dragAndDropUpload;
+    protected bool $dragAndDropUpload;
 
     /**
      * @var bool
      */
-    protected $renameFolderButton;
+    protected bool $renameFolderButton;
 
     /**
      * @var bool
      */
-    protected $deleteFolderButton;
+    protected bool $deleteFolderButton;
 
     /**
      * @var bool
      */
-    protected $renameFileButton;
+    protected bool $renameFileButton;
 
     /**
      * @var bool
      */
-    protected $deleteFileButton;
+    protected bool $deleteFileButton;
 
     /**
      * @var bool
      */
-    protected $downloadFileButton;
+    protected bool $downloadFileButton;
 
     /**
      * The callback used to determine if the field is readonly.
@@ -97,7 +97,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    public function displayAsImage()
+    public function displayAsImage(): self
     {
         return $this->withMeta(['display' => 'image']);
     }
@@ -109,7 +109,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return  $this
      */
-    public function folder($folderName)
+    public function folder($folderName): self
     {
         $folder = is_callable($folderName) ? call_user_func($folderName) : $folderName;
 
@@ -123,7 +123,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return  $this
      */
-    public function validateUpload($rules)
+    public function validateUpload($rules): self
     {
         $this->uploadRules = ($rules instanceof Rule || is_string($rules)) ? func_get_args() : $rules;
 
@@ -133,11 +133,11 @@ class FilemanagerField extends Field implements Cover
     /**
      * Set filter for the field.
      *
-     * @param   string  $folderName
+     * @param   string  $filter
      *
      * @return  $this
      */
-    public function filterBy($filter)
+    public function filterBy(string $filter): self
     {
         $defaultFilters = config('filemanager.filters', []);
 
@@ -159,7 +159,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    public function privateFiles()
+    public function privateFiles(): self
     {
         return $this->withMeta(['visibility' => 'private']);
     }
@@ -169,7 +169,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    public function hideCreateFolderButton()
+    public function hideCreateFolderButton(): self
     {
         $this->createFolderButton = false;
 
@@ -181,7 +181,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    public function hideUploadButton()
+    public function hideUploadButton(): self
     {
         $this->uploadButton = false;
 
@@ -193,7 +193,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    public function hideRenameFolderButton()
+    public function hideRenameFolderButton(): self
     {
         $this->renameFolderButton = false;
 
@@ -205,7 +205,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    public function hideDeleteFolderButton()
+    public function hideDeleteFolderButton(): self
     {
         $this->deleteFolderButton = false;
 
@@ -217,7 +217,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    public function hideRenameFileButton()
+    public function hideRenameFileButton(): self
     {
         $this->renameFileButton = false;
 
@@ -229,7 +229,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    public function hideDeleteFileButton()
+    public function hideDeleteFileButton(): self
     {
         $this->deleteFileButton = false;
 
@@ -241,7 +241,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    public function hideDownloadFileButton()
+    public function hideDownloadFileButton(): self
     {
         $this->downloadFileButton = false;
 
@@ -253,7 +253,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    public function noDragAndDropUpload()
+    public function noDragAndDropUpload(): self
     {
         $this->dragAndDropUpload = false;
 
@@ -266,7 +266,7 @@ class FilemanagerField extends Field implements Cover
      * @param  Closure|bool  $callback
      * @return $this
      */
-    public function readonly($callback = true)
+    public function readonly($callback = true): self
     {
         $this->readonlyCallback = $callback;
 
@@ -279,7 +279,7 @@ class FilemanagerField extends Field implements Cover
      * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @return bool
      */
-    public function isReadonly(NovaRequest $request)
+    public function isReadonly(NovaRequest $request): bool
     {
         return with($this->readonlyCallback, function ($callback) use ($request) {
             if ($callback === true || (is_callable($callback) && call_user_func($callback, $request))) {
@@ -297,19 +297,19 @@ class FilemanagerField extends Field implements Cover
      *
      * @return $this
      */
-    protected function setReadonlyAttribute()
+    protected function setReadonlyAttribute(): self
     {
         $this->withMeta(['extraAttributes' => ['readonly' => true]]);
 
         return $this;
     }
 
-    /**
-     * Resolve the thumbnail URL for the field.
-     *
-     * @return string|null
-     */
-    public function resolveInfo()
+	/**
+	 * Resolve the thumbnail URL for the field.
+	 *
+	 * @return array|string|null
+	 */
+    public function resolveInfo(): array|string|null
     {
         if ($this->value) {
             $service = new FileManagerService();
@@ -331,7 +331,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return string|null
      */
-    public function resolveThumbnailUrl()
+    public function resolveThumbnailUrl(): ?string
     {
         if ($this->value) {
             $service = new FileManagerService();
@@ -339,11 +339,13 @@ class FilemanagerField extends Field implements Cover
             $data = $service->getFileInfoAsArray($this->value);
 
             if ((isset($data['type']) && $data['type'] !== 'image') || empty($data)) {
-                return;
+                return null;
             }
 
             return $data['url'];
         }
+
+		return null;
     }
 
     /**
@@ -351,7 +353,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return array
      */
-    public function meta()
+    public function meta(): array
     {
         return array_merge(
             $this->resolveInfo(),
@@ -382,7 +384,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return array
      */
-    private function buttons()
+    private function buttons(): array
     {
         $buttons = [
             'create_folder' => $this->createFolderButton,
@@ -403,7 +405,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return  array
      */
-    private function getUploadRules()
+    private function getUploadRules(): array
     {
         return ['upload_rules' => $this->uploadRules];
     }
@@ -413,7 +415,7 @@ class FilemanagerField extends Field implements Cover
      *
      * @return  array
      */
-    private function getCoverType()
+    private function getCoverType(): array
     {
         return ['rounded' => $this->isRounded()];
     }
