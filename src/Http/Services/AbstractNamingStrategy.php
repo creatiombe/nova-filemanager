@@ -10,7 +10,7 @@ abstract class AbstractNamingStrategy
     /**
      * @var Filesystem
      */
-    protected $storage;
+    protected Filesystem $storage;
 
     public function __construct(Filesystem $storage)
     {

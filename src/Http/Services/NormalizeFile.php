@@ -29,9 +29,11 @@ class NormalizeFile
      */
     protected $storagePath;
 
-    /**
-     * @param string $path
-     */
+	/**
+	 * @param FilesystemAdapter $storage
+	 * @param string $path
+	 * @param string $storagePath
+	 */
     public function __construct(FilesystemAdapter $storage, string $path, string $storagePath)
     {
         $this->storage = $storage;
@@ -41,9 +43,9 @@ class NormalizeFile
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         $data = collect([
             'name' => $this->file->getFilename(),
@@ -62,9 +64,9 @@ class NormalizeFile
 
     /**
      * @param Collection $data
-     * @return mixed
+     * @return Collection
      */
-    private function setExtras(Collection $data)
+    private function setExtras(Collection $data): Collection
     {
         $mime = $data['mime'];
 
@@ -128,7 +130,7 @@ class NormalizeFile
         return $data;
     }
 
-    public function getFileSize()
+    public function getFileSize(): bool|int|string
     {
         try {
             return ($this->file->getSize() != 0) ? $this->formatBytes($this->file->getSize(), 0) : 0;
@@ -137,12 +139,14 @@ class NormalizeFile
         }
     }
 
-    /**
-     * Returns the image or the svg icon preview.
-     *
-     * @return mixed
-     */
-    private function getImage($mime, $extension = false)
+	/**
+	 * Returns the image or the svg icon preview.
+	 *
+	 * @param $mime
+	 * @param bool $extension
+	 * @return string
+	 */
+    private function getImage($mime, bool $extension = false): string
     {
         if (Str::contains($mime, 'image') || $extension == 'svg') {
             return $this->storage->url($this->storagePath);
@@ -153,10 +157,11 @@ class NormalizeFile
         return $fileType->getImage($mime);
     }
 
-    /**
-     * @param $mime
-     */
-    private function getDimensions($mime)
+	/**
+	 * @param $mime
+	 * @return false|string
+	 */
+    private function getDimensions($mime): bool|string
     {
         if (env('FILEMANAGER_DISK') != 'public') {
             return false;
@@ -173,10 +178,10 @@ class NormalizeFile
         return false;
     }
 
-    /**
-     * @param $timestamp
-     */
-    public function modificationDate()
+	/**
+	 * @return false|string
+	 */
+    public function modificationDate(): bool|string
     {
         try {
             return Carbon::createFromTimestamp($this->file->getMTime())->format('Y-m-d H:i:s');
@@ -188,7 +193,7 @@ class NormalizeFile
     /**
      * @return mixed
      */
-    private function getCorrectMimeFileType()
+    private function getCorrectMimeFileType(): mixed
     {
         $extension = $this->file->getExtension();
         $types = MimeTypes::checkMimeType($extension);
@@ -202,7 +207,7 @@ class NormalizeFile
         return $this->storage->mimeType($this->storagePath);
     }
 
-    private function availablesTextExtensions()
+    private function availablesTextExtensions(): bool
     {
         $extension = $this->file->getExtension();
         $types = MimeTypes::checkMimeType($extension);
@@ -225,9 +230,9 @@ class NormalizeFile
     /**
      * Read zip files.
      *
-     * @return mixed
+     * @return string|bool
      */
-    private function readZip()
+    private function readZip(): string|bool
     {
         $zip = new ZipArchive();
         $zip->open($this->storage->path($this->storagePath));
@@ -248,9 +253,9 @@ class NormalizeFile
     /**
      * Read rar files.
      *
-     * @return mixed
+     * @return string|bool
      */
-    private function readRar()
+    private function readRar(): string|bool
     {
         $zip = new RarArchive();
         $zip->open($this->storage->path($this->storagePath));
@@ -270,9 +275,9 @@ class NormalizeFile
 
     /**
      * @param $pathList
-     * @return mixed
+     * @return string|bool
      */
-    private function buildTree($pathList)
+    private function buildTree($pathList): string|bool
     {
         $data = [];
         foreach ($pathList as $path => $info) {

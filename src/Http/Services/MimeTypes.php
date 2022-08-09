@@ -7,7 +7,7 @@ class MimeTypes
     /**
      * @var array
      */
-    protected static $source = [
+    protected static array $source = [
         '3dm'          => ['x-world/x-3dmf'],
         '3dmf'         => ['x-world/x-3dmf'],
         '3dml'         => ['text/vnd.in3d.3dml'],
@@ -1235,10 +1235,11 @@ class MimeTypes
         '123'          => ['application/vnd.lotus-1-2-3'],
     ];
 
-    /**
-     * @param $extension
-     */
-    public static function checkMimeType($extension)
+	/**
+	 * @param $extension
+	 * @return array|mixed|string[]
+	 */
+    public static function checkMimeType($extension): mixed
     {
         if (isset(self::$source[$extension])) {
             return self::$source[$extension];

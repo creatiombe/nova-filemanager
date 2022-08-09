@@ -15,7 +15,7 @@ class FilemanagerServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot()
+    public function boot(): void
     {
         $this->publishes([
             __DIR__.'/../config/config.php' => config_path('filemanager.php'),
@@ -36,7 +36,7 @@ class FilemanagerServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function routes()
+    protected function routes(): void
     {
         if ($this->app->routesAreCached()) {
             return;
@@ -53,7 +53,7 @@ class FilemanagerServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
         //
     }

@@ -9,7 +9,7 @@ trait FileFunctions
      *
      * @return string
      */
-    public function checkPerms($path)
+    public function checkPerms($path): string
     {
         clearstatcache(null, $path);
 
@@ -24,7 +24,7 @@ trait FileFunctions
      *
      * @return string
      */
-    public function formatBytes($size, $level = 0, $precision = 2, $base = 1024)
+    public function formatBytes($size, int $level = 0, int $precision = 2, int $base = 1024): string
     {
         $unit = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         $times = floor(log($size, $base));
@@ -39,7 +39,7 @@ trait FileFunctions
      *
      * @return string
      */
-    public function cleanSlashes($str)
+    public function cleanSlashes($str): string
     {
         return preg_replace('/([^:])(\/{2,})/', '$1/', $str);
     }
@@ -47,11 +47,11 @@ trait FileFunctions
     /**
      * Cleanup filename.
      *
-     * @param  string  $str
+     * @param string $str
      *
      * @return string
      */
-    public function fixFilename($str)
+    public function fixFilename(string $str): string
     {
         if (! mb_detect_encoding($str, 'UTF-8', true)) {
             $str = utf8_encode($str);
@@ -72,11 +72,11 @@ trait FileFunctions
     /**
      * Cleanup directory name.
      *
-     * @param  string  $str
+     * @param string $str
      *
      * @return  string
      */
-    public function fixDirname($str)
+    public function fixDirname(string $str): string
     {
         return str_replace(['.', '~', '/', '\\'], '', $str);
     }

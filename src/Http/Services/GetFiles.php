@@ -4,7 +4,6 @@ namespace Grayloon\Filemanager\Http\Services;
 
 use Carbon\Carbon;
 use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 trait GetFiles
@@ -16,16 +15,18 @@ trait GetFiles
      *
      * @var array
      */
-    protected $cloudDisks = [
+    protected array $cloudDisks = [
         's3', 'google', 's3-cached',
     ];
 
-    /**
-     * @param $folder
-     * @param $order
-     * @param $filter
-     */
-    public function getFiles($folder, $order, $filter = false)
+	/**
+	 * @param $folder
+	 * @param $order
+	 * @param bool $filter
+	 * @return mixed
+	 * @throws \League\Flysystem\FilesystemException
+	 */
+    public function getFiles($folder, $order, bool $filter = false): mixed
     {
         $filesData = $this->storage->listContents($folder);
         $files = [];
@@ -54,10 +55,11 @@ trait GetFiles
         return $this->orderData($files, $order, config('filemanager.direction', 'asc'));
     }
 
-    /**
-     * @param $file
-     * @param $id
-     */
+	/**
+	 * @param $file
+	 * @param $id
+	 * @return false|object|void
+	 */
     public function getFileData($file, $id)
     {
         if (! $this->isDot($file)
@@ -110,7 +112,7 @@ trait GetFiles
      *
      * @return mixed
      */
-    public function filterData($files, $filter)
+    public function filterData($files, $filter): mixed
     {
         $folders = $files->where('type', 'dir');
         $items = $files->where('type', 'file');
@@ -133,15 +135,15 @@ trait GetFiles
         return $folders->merge($filtered);
     }
 
-    /**
-     * Order files and folders.
-     *
-     * @param $files
-     * @param $order
-     *
-     * @return mixed
-     */
-    public function orderData($files, $order, $direction = 'asc')
+	/**
+	 * Order files and folders.
+	 *
+	 * @param $files
+	 * @param $order
+	 * @param string $direction
+	 * @return mixed
+	 */
+    public function orderData($files, $order, string $direction = 'asc'): mixed
     {
         $folders = $files->where('type', 'dir');
         $items = $files->where('type', 'file');
@@ -179,11 +181,11 @@ trait GetFiles
     /**
      * Generates an id based on file.
      *
-     * @param   \League\Flysystem\FileAttributes  $file
+     * @param \League\Flysystem\FileAttributes $file
      *
      * @return  string
      */
-    public function generateId($file)
+    public function generateId(\League\Flysystem\FileAttributes $file): string
     {
         if ($file->lastModified()) {
             return md5($this->disk.'_'.trim(basename($file->path())).$file->lastModified());
@@ -197,7 +199,7 @@ trait GetFiles
      *
      * @param $folder
      */
-    public function setRelativePath($folder)
+    public function setRelativePath($folder): void
     {
         $defaultPath = $this->storage->getConfig()['root'];
 
@@ -213,9 +215,9 @@ trait GetFiles
     /**
      * Get Append to url.
      *
-     * @return mixed|string
+     * @return string
      */
-    public function getAppend()
+    public function getAppend(): string
     {
         if (in_array(config('filemanager.disk'), $this->cloudDisks)) {
             return '';
@@ -229,7 +231,7 @@ trait GetFiles
      *
      * @return bool|string
      */
-    public function getFileType($file)
+    public function getFileType($file): bool|string
     {
         if ($file->type() == 'dir') {
             return 'dir';
@@ -301,14 +303,14 @@ trait GetFiles
         return false;
     }
 
-    /**
-     * Return the Type of file.
-     *
-     * @param $file
-     *
-     * @return bool|string
-     */
-    public function getThumb($file, $folder = false)
+	/**
+	 * Return the Type of file.
+	 *
+	 * @param $file
+	 * @param bool $folder
+	 * @return bool|string
+	 */
+    public function getThumb($file, bool $folder = false): bool|string
     {
         if ($file->type() == 'dir') {
             return false;
@@ -332,12 +334,13 @@ trait GetFiles
         return $fileType->getImage($mime);
     }
 
-    /**
-     * Get image dimensions for files.
-     *
-     * @param $file
-     */
-    public function getImageDimesions($file)
+	/**
+	 * Get image dimensions for files.
+	 *
+	 * @param $file
+	 * @return array|false
+	 */
+    public function getImageDimesions($file): bool|array
     {
         if ($this->disk == 'public') {
             return @getimagesize($this->storage->path($file['path']));
@@ -350,12 +353,13 @@ trait GetFiles
         return false;
     }
 
-    /**
-     * Get image dimensions from cloud.
-     *
-     * @param $file
-     */
-    public function getImageDimesionsFromCloud($file)
+	/**
+	 * Get image dimensions from cloud.
+	 *
+	 * @param $file
+	 * @return array|false
+	 */
+    public function getImageDimesionsFromCloud($file): bool|array
     {
         try {
             $client = new Client();
@@ -377,7 +381,7 @@ trait GetFiles
      * @param $file
      * @return mixed
      */
-    public function getThumbFile($file)
+    public function getThumbFile($file): mixed
     {
         return $this->cleanSlashes($this->getThumb($file, $this->currentPath));
     }
@@ -387,7 +391,7 @@ trait GetFiles
      *
      * @return bool
      */
-    public function accept($file)
+    public function accept($file): bool
     {
         return '.' !== substr($file->path(), 0, 1);
     }
@@ -399,7 +403,7 @@ trait GetFiles
      *
      * @return  bool
      */
-    public function isDot($file)
+    public function isDot($file): bool
     {
         if (Str::startsWith($file->path(), '.')) {
             return true;
@@ -408,9 +412,10 @@ trait GetFiles
         return false;
     }
 
-    /**
-     * @param $folder
-     */
+	/**
+	 * @param $folder
+	 * @return array|void
+	 */
     public function generateParent($folder)
     {
         $paths = collect(explode('/', $folder))->filter();
@@ -442,10 +447,11 @@ trait GetFiles
         }
     }
 
-    /**
-     * @param $currentFolder
-     */
-    public function getPaths($currentFolder)
+	/**
+	 * @param $currentFolder
+	 * @return \Illuminate\Support\Collection
+	 */
+    public function getPaths($currentFolder): \Illuminate\Support\Collection
     {
         $defaultPath = $this->cleanSlashes($this->storage->getConfig()['root']);
         $currentPath = $this->cleanSlashes($this->storage->path($currentFolder));
@@ -467,18 +473,21 @@ trait GetFiles
         return $goodPaths->reverse();
     }
 
-    /**
-     * @param $pathCollection
-     */
-    public function recursivePaths($name, $pathCollection)
+	/**
+	 * @param $name
+	 * @param $pathCollection
+	 * @return string
+	 */
+    public function recursivePaths($name, $pathCollection): string
     {
         return Str::before($pathCollection->implode('/'), $name).$name;
     }
 
-    /**
-     * @param $timestamp
-     */
-    public function modificationDate($time)
+	/**
+	 * @param $time
+	 * @return false|string
+	 */
+    public function modificationDate($time): bool|string
     {
         try {
             return Carbon::createFromTimestamp($time)->format('Y-m-d H:i:s');
@@ -487,11 +496,13 @@ trait GetFiles
         }
     }
 
-    /**
-     * Hide folders with .hide file.
-     * @param $oath
-     */
-    private function checkShouldHideFolder($path)
+	/**
+	 * Hide folders with .hide file.
+	 * @param $path
+	 * @return bool
+	 * @throws \League\Flysystem\FilesystemException
+	 */
+    private function checkShouldHideFolder($path): bool
     {
 
         $filesData = $this->storage->listContents($path);
