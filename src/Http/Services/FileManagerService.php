@@ -3,6 +3,7 @@
 namespace Grayloon\Filemanager\Http\Services;
 
 use Illuminate\Contracts\Bus\Dispatcher;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -52,9 +53,10 @@ class FileManagerService
      */
     protected $namingStrategy;
 
-    /**
-     * @param Storage $storage
-     */
+	/**
+	 * @throws InvalidConfig
+	 * @throws \Illuminate\Contracts\Container\BindingResolutionException
+	 */
     public function __construct()
     {
         $this->disk = config('filemanager.disk', 'public');
@@ -81,9 +83,9 @@ class FileManagerService
      *
      * @param Request $request
      *
-     * @return json
+     * @return JsonResponse
      */
-    public function ajaxGetFilesAndFolders(Request $request)
+    public function ajaxGetFilesAndFolders(Request $request): JsonResponse
     {
         $folder = $this->cleanSlashes($request->get('folder'));
 
@@ -125,15 +127,15 @@ class FileManagerService
         ]);
     }
 
-    /**
-     *  Create a folder on current path.
-     *
-     * @param $folder
-     * @param $path
-     *
-     * @return  json
-     */
-    public function createFolderOnPath($folder, $currentFolder)
+	/**
+	 *  Create a folder on current path.
+	 *
+	 * @param $folder
+	 * @param $currentFolder
+	 * @return  JsonResponse
+	 * @throws \League\Flysystem\FilesystemException
+	 */
+    public function createFolderOnPath($folder, $currentFolder): JsonResponse
     {
         $folder = $this->fixDirname($this->fixFilename($folder));
 
@@ -155,9 +157,9 @@ class FileManagerService
      *
      * @param string $path
      *
-     * @return  json
+     * @return  JsonResponse
      */
-    public function deleteDirectory($path)
+    public function deleteDirectory(string $path): JsonResponse
     {
         if ($this->storage->deleteDirectory($path)) {
             event(new FolderRemoved($this->storage, $path));
@@ -168,15 +170,16 @@ class FileManagerService
         }
     }
 
-    /**
-     * Upload a file on current folder.
-     *
-     * @param $file
-     * @param $currentFolder
-     *
-     * @return  json
-     */
-    public function uploadFile($file, $currentFolder, $visibility, $uploadingFolder = false, array $rules = [])
+	/**
+	 * Upload a file on current folder.
+	 *
+	 * @param $file
+	 * @param $currentFolder
+	 *
+	 * @return  JsonResponse
+	 * @throws \Illuminate\Validation\ValidationException
+	 */
+    public function uploadFile($file, $currentFolder, $visibility, $uploadingFolder = false, array $rules = []): JsonResponse
     {
         if (count($rules) > 0) {
             $pases = Validator::make(['file' => $file], [
@@ -204,7 +207,7 @@ class FileManagerService
      * @param $file
      * @return mixed
      */
-    public function downloadFile($file)
+    public function downloadFile($file): mixed
     {
         if (! config('filemanager.buttons.download_file')) {
             return response()->json(['success' => false, 'message' => 'File not available for Download'], 403);
@@ -222,9 +225,9 @@ class FileManagerService
      *
      * @param $file
      *
-     * @return  json
+     * @return  JsonResponse
      */
-    public function getFileInfo($file)
+    public function getFileInfo($file): JsonResponse
     {
         $fullPath = $this->storage->path($file);
         try {
@@ -236,14 +239,14 @@ class FileManagerService
         }
     }
 
-    /**
-     * Get info of file as Array.
-     *
-     * @param $file
-     *
-     * @return  json
-     */
-    public function getFileInfoAsArray($file)
+	/**
+	 * Get info of file as Array.
+	 *
+	 * @param $file
+	 *
+	 * @return array
+	 */
+    public function getFileInfoAsArray($file): array
     {
         if (! $this->storage->exists($file)) {
             return [];
@@ -260,11 +263,10 @@ class FileManagerService
      * Remove a file from storage.
      *
      * @param string $file
-     * @param string $type
      *
-     * @return  json
+     * @return  JsonResponse
      */
-    public function removeFile($file)
+    public function removeFile(string $file): JsonResponse
     {
         if ($this->storage->delete($file)) {
             event(new FileRemoved($this->storage, $file));
@@ -275,10 +277,12 @@ class FileManagerService
         }
     }
 
-    /**
-     * @param $file
-     */
-    public function renameFile($file, $newName)
+	/**
+	 * @param $file
+	 * @param $newName
+	 * @return JsonResponse
+	 */
+    public function renameFile($file, $newName): JsonResponse
     {
         $path = str_replace(basename($file), '', $file);
 
@@ -303,7 +307,7 @@ class FileManagerService
         }
     }
 
-    protected function renameDirectory($dir, $newName)
+    protected function renameDirectory($dir, $newName): JsonResponse
     {
         $path = str_replace(basename($dir), '', $dir);
         $newDir = $path.$newName;
@@ -352,9 +356,9 @@ class FileManagerService
      * @param   string  $oldPath
      * @param   string  $newPath
      *
-     * @return  json
+     * @return  JsonResponse
      */
-    public function moveFile($oldPath, $newPath)
+    public function moveFile(string $oldPath, string $newPath): JsonResponse
     {
         if ($this->storage->move($oldPath, $newPath)) {
             return response()->json(['success' => true]);
@@ -368,19 +372,20 @@ class FileManagerService
      *
      * @param   string  $path
      *
-     * @return  json
+     * @return  JsonResponse
      */
-    public function folderUploadedEvent($path)
+    public function folderUploadedEvent(string $path): JsonResponse
     {
         event(new FolderUploaded($this->storage, $path));
 
         return response()->json(['success' => true]);
     }
 
-    /**
-     * @param $folder
-     */
-    private function folderExists($folder)
+	/**
+	 * @param $folder
+	 * @return bool
+	 */
+    private function folderExists($folder): bool
     {
         $directories = $this->storage->directories(dirname($folder));
 
@@ -391,13 +396,14 @@ class FileManagerService
         return in_array(basename($folder), $directories->toArray());
     }
 
-    /**
-     * Set visibility to public.
-     *
-     * @param $folder
-     * @param $file
-     */
-    private function setVisibility($folder, $file, $visibility)
+	/**
+	 * Set visibility to public.
+	 *
+	 * @param $folder
+	 * @param $file
+	 * @param $visibility
+	 */
+    private function setVisibility($folder, $file, $visibility): void
     {
         if ($folder != '/') {
             $folder .= '/';
@@ -405,10 +411,11 @@ class FileManagerService
         $this->storage->setVisibility($folder.$file, $visibility);
     }
 
-    /**
-     * @param $files
-     */
-    private function getAvailableFilters($files)
+	/**
+	 * @param $files
+	 * @return array
+	 */
+    private function getAvailableFilters($files): array
     {
         $filters = config('filemanager.filters', []);
         if (count($filters) > 0) {
@@ -440,11 +447,11 @@ class FileManagerService
         ]);
     }
 
-    /**
-     * @param $currentPath
-     * @param $fileName
-     */
-    private function checkJobs($storage, $filePath)
+	/**
+	 * @param $storage
+	 * @param $filePath
+	 */
+    private function checkJobs($storage, $filePath): void
     {
         $ext = pathinfo($filePath, PATHINFO_EXTENSION);
 

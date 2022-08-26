@@ -7,11 +7,12 @@ use Illuminate\Support\Str;
 
 class DefaultNamingStrategy extends AbstractNamingStrategy
 {
-    /**
-     * @param string $currentFolder
-     * @param UploadedFile $file
-     * @return mixed
-     */
+	/**
+	 * @param string $currentFolder
+	 * @param UploadedFile $file
+	 * @return mixed
+	 * @throws \League\Flysystem\FilesystemException
+	 */
     public function name(string $currentFolder, UploadedFile $file): string
     {
         $filename = $file->getClientOriginalName();

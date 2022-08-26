@@ -2,6 +2,7 @@
 
 namespace Grayloon\Filemanager\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Grayloon\Filemanager\Http\Services\FileManagerService;
@@ -22,42 +23,51 @@ class FilemanagerToolController extends Controller
         $this->service = $filemanagerService;
     }
 
-    /**
-     * @param Request $request
-     */
-    public function getData(Request $request)
+	/**
+	 * @param Request $request
+	 * @return JsonResponse
+	 */
+    public function getData(Request $request): JsonResponse
     {
         return $this->service->ajaxGetFilesAndFolders($request);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function getDataField($resource, $attribute, NovaRequest $request)
+	/**
+	 * @param $resource
+	 * @param $attribute
+	 * @param NovaRequest $request
+	 * @return JsonResponse
+	 */
+    public function getDataField($resource, $attribute, NovaRequest $request): JsonResponse
     {
         return $this->service->ajaxGetFilesAndFolders($request);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function createFolder(Request $request)
+	/**
+	 * @param Request $request
+	 * @return JsonResponse
+	 * @throws \League\Flysystem\FilesystemException
+	 */
+    public function createFolder(Request $request): JsonResponse
     {
         return $this->service->createFolderOnPath($request->folder, $request->current);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function deleteFolder(Request $request)
+	/**
+	 * @param Request $request
+	 * @return JsonResponse
+	 */
+    public function deleteFolder(Request $request): JsonResponse
     {
         return $this->service->deleteDirectory($request->current);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function upload(Request $request)
+	/**
+	 * @param Request $request
+	 * @return JsonResponse
+	 * @throws \Illuminate\Validation\ValidationException
+	 */
+    public function upload(Request $request): JsonResponse
     {
         $uploadingFolder = $request->folder ?? false;
 
@@ -70,58 +80,65 @@ class FilemanagerToolController extends Controller
         );
     }
 
-    /**
-     * @param Request $request
-     */
-    public function move(Request $request)
+	/**
+	 * @param Request $request
+	 * @return JsonResponse
+	 */
+    public function move(Request $request): JsonResponse
     {
         return $this->service->moveFile($request->old, $request->path);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function getInfo(Request $request)
+	/**
+	 * @param Request $request
+	 * @return JsonResponse
+	 */
+    public function getInfo(Request $request): JsonResponse
     {
         return $this->service->getFileInfo($request->file);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function removeFile(Request $request)
+	/**
+	 * @param Request $request
+	 * @return JsonResponse
+	 */
+    public function removeFile(Request $request): JsonResponse
     {
         return $this->service->removeFile($request->file, $request->type);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function renameFile(Request $request)
+	/**
+	 * @param Request $request
+	 * @return JsonResponse
+	 */
+    public function renameFile(Request $request): JsonResponse
     {
         return $this->service->renameFile($request->file, $request->name);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function downloadFile(Request $request)
+	/**
+	 * @param Request $request
+	 * @return mixed
+	 */
+    public function downloadFile(Request $request): mixed
     {
         return $this->service->downloadFile($request->file);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function rename(Request $request)
+	/**
+	 * @param Request $request
+	 * @return JsonResponse
+	 */
+    public function rename(Request $request): JsonResponse
     {
         return $this->service->renameFile($request->path, $request->name);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function folderUploadedEvent(Request $request)
+	/**
+	 * @param Request $request
+	 * @return JsonResponse
+	 */
+    public function folderUploadedEvent(Request $request): JsonResponse
     {
         return $this->service->folderUploadedEvent($request->path);
     }
@@ -129,11 +146,11 @@ class FilemanagerToolController extends Controller
     /**
      * Get rules in array way.
      *
-     * @param   string  $rules
+     * @param string $rules
      *
      * @return  array
      */
-    private function getRules($rules)
+    private function getRules(string $rules): array
     {
         return json_decode($rules);
     }
